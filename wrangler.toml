@@ -1,0 +1,52 @@
+# BlackRoad OS - 30k Agent Monitoring
+# Cloudflare Workers Configuration
+
+name = "blackroad-30k-monitoring"
+main = "workers/aggregator.ts"
+compatibility_date = "2024-01-01"
+workers_dev = true
+
+# Durable Objects
+[durable_objects]
+bindings = [
+  { name = "AGGREGATOR", class_name = "AgentAggregator", script_name = "blackroad-30k-monitoring" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["AgentAggregator"]
+
+# D1 Database
+[[d1_databases]]
+binding = "AGENT_METRICS"
+database_name = "blackroad-agent-metrics"
+database_id = "" # Fill in after: wrangler d1 create blackroad-agent-metrics
+
+# KV Namespace
+[[kv_namespaces]]
+binding = "AGENT_REGISTRY"
+id = "" # Fill in after: wrangler kv:namespace create AGENT_REGISTRY
+
+# Environment Variables
+[vars]
+NATS_URL = "nats://174.138.44.45:4222"
+
+# Secrets (set via CLI)
+# wrangler secret put NATS_TOKEN
+
+# Route Configuration
+routes = [
+  { pattern = "agents.blackroad.io/*", zone_name = "blackroad.io" }
+]
+
+# Build Configuration
+[build]
+command = "npm run build"
+
+[build.upload]
+format = "service-worker"
+
+# Development
+[dev]
+port = 8787
+local_protocol = "http"
